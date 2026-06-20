@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plano de Lógica — Do Zero ao Arquiteto</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #e8c547;
+    --accent2: #7c6af7;
+    --accent3: #4ade80;
+    --text: #e8e8f0;
+    --text-muted: #888899;
+    --text-dim: #555566;
+    --danger: #f87171;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  .header {
+    margin-bottom: 72px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 48px;
+  }
+
+  .header-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-tag::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    margin-bottom: 24px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .header-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 560px;
+    line-height: 1.8;
+  }
+
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .meta-value {
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* INTRO CARD */
+  .intro-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    padding: 28px 32px;
+    margin-bottom: 64px;
+    position: relative;
+  }
+
+  .intro-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    margin-bottom: 12px;
+    color: var(--accent2);
+  }
+
+  .intro-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.9;
+  }
+
+  .intro-card p + p { margin-top: 10px; }
+
+  .intro-card strong { color: var(--text); font-weight: 500; }
+
+  /* SECTION HEADER */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* PHASE CARDS */
+  .phase {
+    margin-bottom: 56px;
+    position: relative;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .phase-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--border);
+    flex-shrink: 0;
+    margin-top: -8px;
+    user-select: none;
+  }
+
+  .phase-info { flex: 1; }
+
+  .phase-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .phase-duration {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .phase-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  .badge-foundation { background: rgba(232, 197, 71, 0.12); color: var(--accent); border: 1px solid rgba(232, 197, 71, 0.3); }
+  .badge-patterns { background: rgba(124, 106, 247, 0.12); color: var(--accent2); border: 1px solid rgba(124, 106, 247, 0.3); }
+  .badge-structures { background: rgba(74, 222, 128, 0.12); color: var(--accent3); border: 1px solid rgba(74, 222, 128, 0.3); }
+  .badge-architecture { background: rgba(248, 113, 113, 0.12); color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+  .phase-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+    margin-left: 0;
+  }
+
+  .phase-goal {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.8;
+  }
+
+  .phase-goal strong { color: var(--text); font-weight: 500; }
+
+  /* WEEKLY PLAN */
+  .week-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 600px) { .week-grid { grid-template-columns: 1fr; } }
+
+  .week-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .week-block-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .week-block ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .week-block li {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.5;
+  }
+
+  .week-block li::before {
+    content: '→';
+    color: var(--text-dim);
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  /* EXERCISES LIST */
+  .exercises-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .exercise-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .ex-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ex-text { color: var(--text-muted); }
+  .ex-text strong { color: var(--text); font-weight: 500; }
+
+  /* METHOD BOX */
+  .method-box {
+    background: linear-gradient(135deg, rgba(124, 106, 247, 0.06), rgba(232, 197, 71, 0.04));
+    border: 1px solid rgba(124, 106, 247, 0.2);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .method-box h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .method-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .method-step {
+    display: flex;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    align-items: flex-start;
+    line-height: 1.6;
+  }
+
+  .step-n {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: var(--accent2);
+    color: var(--bg);
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-weight: 500;
+  }
+
+  /* RESOURCES */
+  .resources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .resource-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  /* DECISION FRAMEWORK */
+  .framework {
+    margin-bottom: 64px;
+  }
+
+  .decision-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .decision-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .decision-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+
+  .decision-table tr:hover td { background: var(--surface); }
+
+  .signal { color: var(--accent); font-weight: 500; }
+  .tool-name { 
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  /* RITUAL BOX */
+  .ritual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent3);
+    padding: 32px;
+    margin-bottom: 64px;
+  }
+
+  .ritual h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: var(--accent3);
+  }
+
+  .ritual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .ritual-item {
+    padding: 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .ritual-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .ritual-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* MILESTONE */
+  .milestones {
+    margin-bottom: 64px;
+  }
+
+  .milestone-track {
+    position: relative;
+    padding-left: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .milestone-track::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .milestone-item {
+    position: relative;
+    padding: 0 0 32px 24px;
+  }
+
+  .milestone-dot {
+    position: absolute;
+    left: -25px;
+    top: 6px;
+    width: 15px;
+    height: 15px;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+  }
+
+  .milestone-item:nth-child(1) .milestone-dot { border-color: var(--accent); }
+  .milestone-item:nth-child(2) .milestone-dot { border-color: var(--accent2); }
+  .milestone-item:nth-child(3) .milestone-dot { border-color: var(--accent3); }
+  .milestone-item:nth-child(4) .milestone-dot { border-color: var(--danger); }
+
+  .milestone-when {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .milestone-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .milestone-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-top: 40px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .footer span { color: var(--accent); }
+
+  /* ANIMATIONS */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .phase, .intro-card, .framework, .ritual, .milestones {
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  .phase:nth-child(1) { animation-delay: 0.1s; }
+  .phase:nth-child(2) { animation-delay: 0.2s; }
+  .phase:nth-child(3) { animation-delay: 0.3s; }
+  .phase:nth-child(4) { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-tag">Plano de estudo personalizado</div>
+    <h1>Do fogão<br>para o <em>código.</em></h1>
+    <p class="header-sub">Um plano definitivo de lógica de programação para quem quer pensar como engenheiro — não apenas copiar tutorial.</p>
+    <div class="header-meta">
+      <div class="meta-item">
+        <span class="meta-label">Duração total</span>
+        <span class="meta-value">~6 meses</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Carga semanal</span>
+        <span class="meta-value">4–6 horas</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Linguagem base</span>
+        <span class="meta-value">Python</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Destino</span>
+        <span class="meta-value">Backend + IA</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- INTRO -->
+  <div class="intro-card">
+    <h2>Antes de começar: como você deve usar este plano</h2>
+    <p>O maior erro de quem estuda lógica é ir direto para o código. <strong>Você precisa primeiro escrever a solução em português</strong> — passo a passo, como uma receita de cozinha. Isso não é fraqueza, é exatamente o que engenheiros sênior fazem antes de abrir o editor.</p>
+    <p>Cada exercício deste plano segue o método <strong>PODA</strong>: <strong>P</strong>roblema → <strong>O</strong>bservações → <strong>D</strong>ecomposição → <strong>A</strong>lgoritmo. Você vai aplicar isso antes de escrever uma linha de código. Com o tempo, esse processo vai se tornar automático — e é aí que o clique acontece.</p>
+    <p>A gastronomia te deu algo valioso: <strong>você já pensa em processos, mise en place, etapas e dependências</strong>. Programação é exactamente isso. Use essa intuição.</p>
+  </div>
+
+  <!-- MÉTODO PODA -->
+  <div class="section-label">Ferramenta central</div>
+
+  <div class="framework" style="margin-bottom: 56px;">
+    <div class="method-box" style="margin-bottom: 0;">
+      <h4>Método PODA — aplique antes de qualquer exercício</h4>
+      <div class="method-steps">
+        <div class="method-step">
+          <div class="step-n" style="background: var(--accent); color: var(--bg);">P</div>
+          <div><strong style="color: var(--text);">Problema:</strong> reescreva o enunciado com suas palavras. O que entra? O que deve sair? Qual é a restrição?</div>
+        </div>
+        <div class="method-step">
+          <div class="step-n" style="background: var(--accent);">O</div>
+          <div><strong style="color: var(--text);">Observações:</strong> anote casos especiais. E se a lista estiver vazia? E se o número for negativo? E se o usuário digitar errado?</div>
+        </div>
+        <div class="method-step">
+          <div class="step-n" style="background: var(--accent);">D</div>
+          <div><strong style="color: var(--text);">Decomposição:</strong> quebre em subproblemas. "Calcular o desconto" e "mostrar o resultado" são dois problemas separados.</div>
+        </div>
+        <div class="method-step">
+          <div class="step-n" style="background: var(--accent);">A</div>
+          <div><strong style="color: var(--text);">Algoritmo:</strong> escreva a solução em português numerado, passo a passo. Só então abra o Python.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECISÃO: QUANDO USAR O QUÊ -->
+  <div class="section-label">Guia de decisão</div>
+
+  <div class="framework">
+    <table class="decision-table">
+      <thead>
+        <tr>
+          <th>Você percebe que...</th>
+          <th>Use</th>
+          <th>Por quê</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="signal">Precisa repetir algo N vezes sabendo N</span></td>
+          <td class="tool-name">for + range()</td>
+          <td>Quantidade fixa de iterações</td>
+        </tr>
+        <tr>
+          <td><span class="signal">Precisa repetir enquanto uma condição for verdadeira</span></td>
+          <td class="tool-name">while</td>
+          <td>Você não sabe quantas vezes vai repetir</td>
+        </tr>
+        <tr>
+          <td><span class="signal">Precisa tomar uma decisão binária ou múltipla</span></td>
+          <td class="tool-name">if / elif / else</td>
+          <td>Ramificação de fluxo — sem repetição</td>
+        </tr>
+        <tr>
+          <td><span class="signal">Precisa guardar vários itens e iterar sobre eles</span></td>
+          <td class="tool-name">list + for</td>
+          <td>Coleção ordenada e mutável</td>
+        </tr>
+        <tr>
+          <td><span class="signal">Precisa associar chave → valor</span></td>
+          <td class="tool-name">dict</td>
+          <td>Mapeamento, não sequência</td>
+        </tr>
+        <tr>
+          <td><span class="signal">Precisa validar formato de texto (CPF, email, data)</span></td>
+          <td class="tool-name">regex</td>
+          <td>Padrão estrutural — mas if resolve casos simples</td>
+        </tr>
+        <tr>
+          <td><span class="signal">A lógica vai repetir em vários lugares do código</span></td>
+          <td class="tool-name">function</td>
+          <td>Reutilização e clareza — sempre que houver repetição de lógica</td>
+        </tr>
+        <tr>
+          <td><span class="signal">Precisa agrupar dados relacionados com comportamento</span></td>
+          <td class="tool-name">class</td>
+          <td>Estado + comportamento juntos — começa na Fase 3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FASE 1 -->
+  <div class="section-label">Fases do plano</div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">01</div>
+      <div class="phase-info">
+        <div class="phase-title">Fundação do Pensamento Algorítmico</div>
+        <div class="phase-duration">Semanas 1–6 · ~30 horas no total</div>
+        <div class="phase-badge badge-foundation">Fundação</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-goal">
+        <strong>Objetivo:</strong> antes de escrever qualquer código, você precisa aprender a <strong>pensar em sequência, condição e repetição</strong> como estruturas naturais de raciocínio. Muita gente pula essa fase e nunca consolida a lógica de verdade. Aqui você vai resolver exercícios primeiro no papel.
+      </p>
+
+      <div class="week-grid">
+        <div class="week-block">
+          <div class="week-block-title">Dias úteis (2–3x por semana · 30min)</div>
+          <ul>
+            <li>Escreva 1 algoritmo por dia em português — sem abrir o computador</li>
+            <li>Trace o fluxo manualmente: o que muda a cada passo?</li>
+            <li>Confira depois convertendo para Python</li>
+          </ul>
+        </div>
+        <div class="week-block">
+          <div class="week-block-title">Final de semana (1 sessão · 1.5–2h)</div>
+          <ul>
+            <li>Resolva 2–3 exercícios completos com o método PODA</li>
+            <li>Refatore: há uma forma mais clara de escrever?</li>
+            <li>Registre o que aprendeu numa frase</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exercises-title">Exercícios progressivos da fase</div>
+      <div class="exercise-list">
+        <div class="exercise-item">
+          <span class="ex-num">01</span>
+          <span class="ex-text"><strong>Calculadora de gorjeta:</strong> dado o valor da conta e o percentual, calcule e mostre a gorjeta e o total. Sem loop, só sequência.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">02</span>
+          <span class="ex-text"><strong>Classificador de temperatura:</strong> leia uma temperatura e diga se é "frio", "agradável" ou "calor". Pratique elif sem complexidade desnecessária.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">03</span>
+          <span class="ex-text"><strong>Tabuada de qualquer número:</strong> dado um número, imprima a tabuada de 1 a 10. Seu primeiro for com range().</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">04</span>
+          <span class="ex-text"><strong>Validador de senha simples:</strong> peça uma senha. Se tiver menos de 8 caracteres, peça de novo. Seu primeiro while — perceba quando usar em vez do for.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">05</span>
+          <span class="ex-text"><strong>Contador de pares:</strong> receba 10 números do usuário. Conte quantos são pares. Combine loop + if + acumulador.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">06</span>
+          <span class="ex-text"><strong>Calculadora de média com conceito:</strong> leia 5 notas, calcule a média e diga o conceito (A, B, C, reprovado). Loop + acumulador + if encadeado.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">07</span>
+          <span class="ex-text"><strong>Simulador de caixa registradora:</strong> some itens digitados pelo usuário até ele digitar "0". Mostre o total. While + acumulador com condição de parada real.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">08</span>
+          <span class="ex-text"><strong>Jogo de adivinhar número:</strong> gere um número aleatório entre 1–100. O usuário tenta adivinhar. Dê dicas "maior" ou "menor". While + break + contador de tentativas.</span>
+        </div>
+      </div>
+
+      <div class="resources">
+        <span class="resource-chip">Python Tutor (visualizador)</span>
+        <span class="resource-chip">Beecrowd — nível iniciante</span>
+        <span class="resource-chip">Caderno + caneta (sério)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">02</div>
+      <div class="phase-info">
+        <div class="phase-title">Estruturas de Dados e Funções</div>
+        <div class="phase-duration">Semanas 7–14 · ~40 horas no total</div>
+        <div class="phase-badge badge-patterns">Padrões</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-goal">
+        <strong>Objetivo:</strong> aprender a <strong>organizar informação</strong> (listas, dicionários, sets) e a <strong>modularizar lógica</strong> com funções bem definidas. Você vai perceber que a maioria dos problemas de backend se resume a transformar dados de uma estrutura para outra.
+      </p>
+
+      <div class="week-grid">
+        <div class="week-block">
+          <div class="week-block-title">Foco da quinzena 1 (sem. 7–10)</div>
+          <ul>
+            <li>Listas: criação, fatiamento, iteração, list comprehension</li>
+            <li>Funções: parâmetros, retorno, escopo de variáveis</li>
+            <li>Regra de ouro: se você copiou um bloco de código, é função</li>
+          </ul>
+        </div>
+        <div class="week-block">
+          <div class="week-block-title">Foco da quinzena 2 (sem. 11–14)</div>
+          <ul>
+            <li>Dicionários: modelar entidades do mundo real</li>
+            <li>Sets: quando a ordem não importa e duplicatas são o problema</li>
+            <li>Combinação: list de dicts → padrão de backend real</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exercises-title">Exercícios progressivos da fase</div>
+      <div class="exercise-list">
+        <div class="exercise-item">
+          <span class="ex-num">09</span>
+          <span class="ex-text"><strong>Filtro de lista:</strong> dada uma lista de números, retorne apenas os maiores que 50 — sem filter(), use list comprehension manual primeiro.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">10</span>
+          <span class="ex-text"><strong>Função de IMC:</strong> crie uma função que recebe peso e altura e retorna o IMC e a classificação. Pratique retorno múltiplo e funções puras.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">11</span>
+          <span class="ex-text"><strong>Cardápio de restaurante:</strong> modele um cardápio como lista de dicionários. Implemente funções para: buscar por nome, filtrar por preço máximo, listar por categoria.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">12</span>
+          <span class="ex-text"><strong>Frequência de palavras:</strong> dada uma string, conte quantas vezes cada palavra aparece. Use dict. Esse padrão aparece em todo lugar — análise de logs, NLP básico.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">13</span>
+          <span class="ex-text"><strong>Agenda de contatos:</strong> CRUD completo com dict. Adicionar, buscar, atualizar, remover contato. Cada operação em uma função separada.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">14</span>
+          <span class="ex-text"><strong>Análise de vendas:</strong> dada uma lista de pedidos (dict com produto, valor, data), calcule: total do dia, produto mais vendido, ticket médio. Combine tudo.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">15</span>
+          <span class="ex-text"><strong>Eliminador de duplicatas inteligente:</strong> receba uma lista de emails. Retorne sem duplicatas, em ordem alfabética, e informe quantas foram removidas. Set + list + função.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">16</span>
+          <span class="ex-text"><strong>Mini sistema de pedidos:</strong> simule um carrinho de compras. O usuário adiciona itens (nome + preço), remove, vê o total. Todas as operações em funções separadas.</span>
+        </div>
+      </div>
+
+      <div class="resources">
+        <span class="resource-chip">Beecrowd — nível intermediário</span>
+        <span class="resource-chip">Exercism.io (Python track)</span>
+        <span class="resource-chip">Real Python — Functions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">03</div>
+      <div class="phase-info">
+        <div class="phase-title">OOP e Modelagem do Mundo Real</div>
+        <div class="phase-duration">Semanas 15–20 · ~30 horas no total</div>
+        <div class="phase-badge badge-structures">Estruturas</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-goal">
+        <strong>Objetivo:</strong> entender <strong>Orientação a Objetos não como sintaxe, mas como forma de pensar</strong>. Um <code>Pedido</code> tem dados (itens, valor, status) e comportamentos (adicionar item, calcular total, fechar). Isso é uma classe. Você já modela o mundo assim na cozinha — um prato tem ingredientes, modo de preparo e tempo.
+      </p>
+
+      <div class="method-box">
+        <h4>Como decidir quando criar uma classe</h4>
+        <div class="method-steps">
+          <div class="method-step">
+            <div class="step-n">1</div>
+            <div>Você tem um dict que está ficando grande e com funções associadas? → Vire uma classe.</div>
+          </div>
+          <div class="method-step">
+            <div class="step-n">2</div>
+            <div>Você vai ter múltiplos "exemplares" da mesma coisa (vários Usuários, vários Produtos)? → Classe.</div>
+          </div>
+          <div class="method-step">
+            <div class="step-n">3</div>
+            <div>Os dados e as funções que os manipulam vivem sempre juntos? → Classe.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exercise-list">
+        <div class="exercise-item">
+          <span class="ex-num">17</span>
+          <span class="ex-text"><strong>Classe ContaBancaria:</strong> saldo, depositar(), sacar() com validação, extrato(). Seu primeiro objeto com estado interno.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">18</span>
+          <span class="ex-text"><strong>Classe Produto + Estoque:</strong> Produto com nome/preço/quantidade. Estoque que gerencia lista de produtos. Pratique composição de classes.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">19</span>
+          <span class="ex-text"><strong>Sistema de restaurante OOP:</strong> classes Mesa, Pedido, Item. Uma mesa abre um pedido, adiciona itens, fecha a conta. Simule o que você já conhece.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">20</span>
+          <span class="ex-text"><strong>Herança com veículos:</strong> classe base Veiculo, subclasses Carro e Moto. Pratique override de métodos e entenda quando herança faz sentido (e quando não faz).</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">21</span>
+          <span class="ex-text"><strong>Mini RPG de texto:</strong> classes Personagem, Inimigo, Batalha. Stats, ataque, defesa, nível. Consolida OOP com lógica real e divertida.</span>
+        </div>
+      </div>
+
+      <div class="resources">
+        <span class="resource-chip">Python OOP — Real Python</span>
+        <span class="resource-chip">Exercism — OOP exercises</span>
+        <span class="resource-chip">Diagrama UML simples (papel)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">04</div>
+      <div class="phase-info">
+        <div class="phase-title">Algoritmos, Complexidade e Pensamento de Engenheiro</div>
+        <div class="phase-duration">Semanas 21–26 · ~30 horas no total</div>
+        <div class="phase-badge badge-architecture">Arquitetura</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-goal">
+        <strong>Objetivo:</strong> a diferença entre um dev que copia tutorial e um arquiteto é simples: o arquiteto <strong>pergunta "por quê esta solução e não outra?"</strong>. Nessa fase você vai aprender a pensar em eficiência, entender recursão, e resolver problemas que exigem estratégia — não só sintaxe.
+      </p>
+
+      <div class="exercise-list">
+        <div class="exercise-item">
+          <span class="ex-num">22</span>
+          <span class="ex-text"><strong>Busca binária:</strong> implemente do zero, sem biblioteca. Entenda por que é O(log n) e não O(n). Compare com busca linear em listas grandes.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">23</span>
+          <span class="ex-text"><strong>Recursão — Fibonacci e Torre de Hanói:</strong> entenda o call stack. Depois, implemente com memoização e veja a diferença de performance.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">24</span>
+          <span class="ex-text"><strong>Ordenação manual:</strong> implemente bubble sort e merge sort. Não para usar em produção — para entender que ordenar tem custo e diferentes estratégias existem.</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">25</span>
+          <span class="ex-text"><strong>Tratamento de erros robusto:</strong> refatore os exercícios anteriores com try/except, validações de entrada, e mensagens de erro úteis. Pense: "o que pode dar errado?"</span>
+        </div>
+        <div class="exercise-item">
+          <span class="ex-num">26</span>
+          <span class="ex-text"><strong>Projeto integrador — API simulada:</strong> construa um sistema de gerenciamento (biblioteca, clínica, restaurante) com leitura/escrita em JSON, classes, funções, validações e tratamento de erro. Tudo que você aprendeu, junto.</span>
+        </div>
+      </div>
+
+      <div class="resources">
+        <span class="resource-chip">LeetCode — Easy problems</span>
+        <span class="resource-chip">CS50P (Harvard, gratuito)</span>
+        <span class="resource-chip">Beecrowd — algoritmos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RITUAL SEMANAL -->
+  <div class="section-label">Consistência</div>
+
+  <div class="ritual">
+    <h3>Seu ritual semanal</h3>
+    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Consistência pequena vence intensidade esporádica. Com filho de 18 meses, previsibilidade é tudo.</p>
+    <div class="ritual-grid">
+      <div class="ritual-item">
+        <div class="ritual-time">3× por semana · 30–45min</div>
+        <div class="ritual-desc">1 exercício do plano com o método PODA completo. Escreva no papel antes. Só então code.</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-time">Sábado ou domingo · 1.5–2h</div>
+        <div class="ritual-desc">Sessão longa: 2 exercícios + revisão da semana. O que ficou travado? Resolva agora.</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-time">Diário · 10min (opcional)</div>
+        <div class="ritual-desc">Leia 1 conceito ou veja 1 solução comentada. No celular, no metrô, onde der. Acumula.</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-time">Fim de cada fase · 1h</div>
+        <div class="ritual-desc">Revisão completa. Refaça 2 exercícios sem consultar nada. Se travar, a fase não terminou.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MILESTONES -->
+  <div class="section-label">Marcos de progresso</div>
+
+  <div class="milestones">
+    <div class="milestone-track">
+      <div class="milestone-item">
+        <div class="milestone-dot"></div>
+        <div class="milestone-when">Semana 6 — Fim da Fase 1</div>
+        <div class="milestone-title">Você consegue decompor qualquer problema simples em passos antes de codar</div>
+        <div class="milestone-desc">Teste: dado um enunciado inédito, você escreve o algoritmo em português em menos de 5 minutos sem travar.</div>
+      </div>
+      <div class="milestone-item">
+        <div class="milestone-dot"></div>
+        <div class="milestone-when">Semana 14 — Fim da Fase 2</div>
+        <div class="milestone-title">Você escolhe a estrutura de dados certa naturalmente</div>
+        <div class="milestone-desc">Teste: você lê um problema e já sabe se precisa de lista, dict ou set — e consegue justificar por quê.</div>
+      </div>
+      <div class="milestone-item">
+        <div class="milestone-dot"></div>
+        <div class="milestone-when">Semana 20 — Fim da Fase 3</div>
+        <div class="milestone-title">Você modela sistemas reais com classes coesas</div>
+        <div class="milestone-desc">Teste: você consegue desenhar as classes de um sistema simples (com atributos e métodos) antes de escrever código.</div>
+      </div>
+      <div class="milestone-item">
+        <div class="milestone-dot"></div>
+        <div class="milestone-when">Semana 26 — Plano completo</div>
+        <div class="milestone-title">Você está pronto para mergulhar no Backend Python e estudar IA com base sólida</div>
+        <div class="milestone-desc">Teste: você resolve um problema do LeetCode (Easy) ou Beecrowd (intermediário) de forma independente, com código limpo e tratamento de erros.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>Montado para você · <span>6 meses · 26 exercícios · 1 clique de cada vez</span></p>
+    <p style="margin-top: 8px;">A gastronomia te ensinou que resultados bons exigem processo. Aqui não é diferente.</p>
+  </div>
+
+</div>
+</body>
+</html>
