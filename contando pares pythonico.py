@@ -15,5 +15,5 @@ acumulador = len(numeros_pares)
 
 # exibindo lista de números pares 
 
-print(f"""Os numeros pares dentre os digitados por você são:
+print(f"""Há {acumulador} numeros pares dentre os digitados por você, são eles:
 {("\n".join(map(str, numeros_pares)))}""")
