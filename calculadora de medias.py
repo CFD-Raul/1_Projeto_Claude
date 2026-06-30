@@ -24,9 +24,9 @@ status_do_avaliado = ""
 
 if media < 70:
     status_do_avaliado = "REPROVADO" 
-elif 70 <= media < 80:
+elif media >= 70 and media < 80:
     status_do_avaliado = "C"
-elif 80 < media < 90:
+elif media >= 80 and media < 90:
     status_do_avaliado = "B"
 else: 
     status_do_avaliado = "A"
