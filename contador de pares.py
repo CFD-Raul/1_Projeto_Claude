@@ -1,6 +1,6 @@
 # obtendo os números do usuario
 
-numeros_do_usuario = input("Digite dez números para validação dos pares entre eles: ").split(",")
+numeros_do_usuario = input("Digite dez números para validação dos pares entre eles: ").split(" ")
 
 # convertendo cada elemento da lista criada(input() aceita somente strings) para numeros (int)
 numeros_do_usuario = [int(n) for n in numeros_do_usuario]
@@ -20,9 +20,9 @@ acumulador = 0
 for numero in numeros_do_usuario:
     if numero % 2 == 0:
         numeros_pares.append(numero)
-        acumulador += numero
+        acumulador += 1
 
 # exibindo lista de números pares 
 
-print(f"""Os numeros pares dentre os digitados por você são:
+print(f"""O total de número pares é {acumulador} e são eles:
 {("\n".join(map(str, numeros_pares)))}""")
