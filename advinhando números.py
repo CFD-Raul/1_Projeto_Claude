@@ -21,8 +21,7 @@ tentativas = 1
 # estabelecendo o laço
 
 while True:
-    palpite != numero_secreto
-
+    
     if palpite < numero_secreto:
         print("O Número Secreto é maior. Tente novamente!")
         palpite = int(input("Por favor, digite um número inteiro, de 0 a 100: "))
@@ -40,11 +39,11 @@ classificacao_do_ususario = ""
 
 if tentativas <= 10:
     classificacao_do_ususario = "foi formidável!"
-elif 11 == tentativas <= 20:
+elif tentativas >=11 and tentativas <= 20:
     classificacao_do_ususario = "foi muito bom!"
-elif 21 == tentativas <= 30:
+elif tentativas >= 21 and tentativas <= 30:
     classificacao_do_ususario = "foi aceitável!"
-elif 31 == tentativas <= 40:
+elif tentativas >= 31 and tentativas <= 40:
     classificacao_do_ususario = "foi insuficiente, precisa estudar mais adivinhação, consulte o Almanaque do Vidente 2026!"
 else:
     classificacao_do_ususario = "Foi deplorável! Você não possui nenhuma pré-disposição à Vidência!"
