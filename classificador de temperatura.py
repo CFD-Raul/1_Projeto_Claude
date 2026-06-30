@@ -4,9 +4,9 @@ temperatura = float(input("Digite a temperatura aferida: "))
 
 # criando classificação de temperaturas
 
-if temperatura <= 14.9:
+if temperatura < 15:
     classificacao_temperatura = "frio"
-elif temperatura >= 15 and temperatura <= 23.9:
+elif temperatura >= 15 and temperatura < 24:
     classificacao_temperatura = "agradável"
 else:
     classificacao_temperatura = "calor"
